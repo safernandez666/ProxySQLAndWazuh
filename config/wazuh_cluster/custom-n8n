@@ -1,0 +1,17 @@
+#!/bin/sh
+# config/wazuh_cluster/custom-n8n
+
+# Leer el JSON de stdin
+ALERT_JSON=$(cat)
+
+# Extraer datos del JSON
+HOOK_URL=$1
+
+# Enviar a n8n usando curl
+curl -X POST "$HOOK_URL" \
+  -H "Content-Type: application/json" \
+  -d "$ALERT_JSON" \
+  --max-time 10 \
+  --silent
+
+exit 0

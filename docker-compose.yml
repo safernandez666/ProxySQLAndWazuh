@@ -51,7 +51,7 @@ services:
       - mysql-data:/var/log/mysql:ro  # ← Lectura Logs de MySQL
       - proxysql-logs:/var/log/proxysql:ro
       - ./config/wazuh_cluster/proxysql-rules.xml:/var/ossec/etc/rules/proxysql-rules.xml:ro
-      #- ./config/wazuh_cluster/proxysql-decoder.xml:/var/ossec/etc/decoders/proxysql-decoder.xml:ro
+      - ./config/wazuh_cluster/custom-n8n:/var/ossec/integrations/custom-n8n:ro
 
   wazuh.indexer:
     image: wazuh/wazuh-indexer:4.13.1
@@ -156,6 +156,7 @@ services:
     volumes:
       - ./config/proxysql/proxysql.cnf:/etc/proxysql.cnf:ro
       - ./config/proxysql/init_proxysql.sql:/docker-entrypoint-initdb.d/init_proxysql.sql:ro
+      - ./config/proxysql/entrypoint.sh:/docker-entrypoint.sh:ro
       - proxysql-data:/var/lib/proxysql
       - proxysql-logs:/var/log/proxysql
     environment:
@@ -168,7 +169,28 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
+# ============================================
+# N8N
+# ============================================
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=admin
+      - N8N_BASIC_AUTH_PASSWORD=n8n_password
+      - N8N_HOST=0.0.0.0
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - WEBHOOK_URL=http://n8n:5678/
+      - GENERIC_TIMEZONE=America/Argentina/Buenos_Aires
+    volumes:
+      - n8n_data:/home/node/.n8n
+    networks:
+      - poc-network
 # ============================================
 # NETWORKS
 # ============================================
@@ -196,3 +218,4 @@ volumes:
   mysql-data:
   proxysql-data:
   proxysql-logs:
+  n8n_data:
