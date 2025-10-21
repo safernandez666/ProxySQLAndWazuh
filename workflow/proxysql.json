@@ -1,0 +1,94 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "wazuh-proxysql",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -208,
+        -16
+      ],
+      "id": "f30a3dc4-0ede-43c1-9d81-855c91b70b05",
+      "name": "Webhook",
+      "webhookId": "4c85d74b-c03c-4c16-9021-af1a9e0867ab"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extraer datos del webhook\nconst alert = $input.item.json.body;\n\n// Formatear timestamp\nconst timestamp = new Date(alert.timestamp).toLocaleString('es-AR', {\n  dateStyle: 'full',\n  timeStyle: 'long',\n  timeZone: 'America/Argentina/Buenos_Aires'\n});\n\n// Determinar severidad\nconst severity = alert.rule.level >= 12 ? 'CRÍTICO' : 'ALTO';\nconst severityColor = alert.rule.level >= 12 ? '#d32f2f' : '#f57c00';\nconst severityBg = alert.rule.level >= 12 ? '#ffebee' : '#fff3e0';\n\n// MITRE\nconst mitreTechnique = alert.rule.mitre ? \n  `${alert.rule.mitre.id[0]} - ${alert.rule.mitre.technique[0]}` : \n  'N/A';\n\nconst mitreUrl = alert.rule.mitre ? \n  `https://attack.mitre.org/techniques/${alert.rule.mitre.id[0].replace('.', '/')}` : \n  '#';\n\n// GENERAR HTML COMPLETO AQUÍ\nconst htmlEmail = `<!DOCTYPE html>\n<html lang=\"es\">\n<head>\n  <meta charset=\"UTF-8\">\n  <style>\n    * { margin: 0; padding: 0; box-sizing: border-box; }\n    body { \n      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n      background-color: #f5f5f5;\n      padding: 20px;\n      line-height: 1.6;\n    }\n    .container {\n      max-width: 650px;\n      margin: 0 auto;\n      background: white;\n      border-radius: 12px;\n      overflow: hidden;\n      box-shadow: 0 4px 6px rgba(0,0,0,0.1);\n    }\n    .header {\n      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);\n      color: white;\n      padding: 30px;\n      text-align: center;\n    }\n    .header h1 { font-size: 28px; margin-bottom: 8px; }\n    .alert-banner {\n      background: ${severityBg};\n      border-left: 6px solid ${severityColor};\n      padding: 20px 30px;\n      margin: 20px 30px;\n      border-radius: 8px;\n    }\n    .alert-banner h2 {\n      color: ${severityColor};\n      font-size: 18px;\n      margin-bottom: 8px;\n    }\n    .severity-badge {\n      background: ${severityColor};\n      color: white;\n      padding: 4px 12px;\n      border-radius: 20px;\n      font-size: 12px;\n      font-weight: 600;\n    }\n    .content { padding: 0 30px 30px; }\n    .section {\n      background: #fafafa;\n      border-radius: 8px;\n      padding: 20px;\n      margin-bottom: 20px;\n    }\n    .section h3 {\n      color: #333;\n      font-size: 16px;\n      margin-bottom: 15px;\n      padding-bottom: 10px;\n      border-bottom: 2px solid #e0e0e0;\n    }\n    .info-row {\n      display: flex;\n      padding: 10px 0;\n      border-bottom: 1px solid #e8e8e8;\n    }\n    .info-label {\n      font-weight: 600;\n      color: #555;\n      min-width: 140px;\n    }\n    .info-value { color: #333; word-break: break-all; }\n    .query-box {\n      background: #1e1e1e;\n      color: #a9dc76;\n      padding: 20px;\n      border-radius: 8px;\n      font-family: monospace;\n      font-size: 14px;\n      margin: 20px 0;\n    }\n    .mitre-box {\n      background: #e3f2fd;\n      border-left: 4px solid #2196f3;\n      padding: 15px;\n      border-radius: 8px;\n      margin: 20px 0;\n    }\n    .mitre-box a { color: #1976d2; text-decoration: none; font-weight: 500; }\n    .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }\n    .tag {\n      background: #e0e0e0;\n      padding: 4px 12px;\n      border-radius: 16px;\n      font-size: 12px;\n    }\n    .btn {\n      display: inline-block;\n      background: #667eea;\n      color: white;\n      padding: 12px 30px;\n      border-radius: 6px;\n      text-decoration: none;\n      margin-top: 15px;\n    }\n    .footer {\n      background: #f9f9f9;\n      padding: 20px;\n      text-align: center;\n      color: #777;\n      font-size: 13px;\n      border-top: 1px solid #e0e0e0;\n    }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <div class=\"header\">\n      <h1>🛡️ Wazuh Security Alert</h1>\n      <p>Sistema de Protección de Base de Datos</p>\n    </div>\n\n    <div class=\"alert-banner\">\n      <h2>\n        ⚠️ ${alert.rule.description}\n        <span class=\"severity-badge\">${severity}</span>\n      </h2>\n      <p style=\"margin-top: 8px; color: #555;\">Nivel: ${alert.rule.level}/15</p>\n    </div>\n\n    <div class=\"content\">\n      <div class=\"section\">\n        <h3>📋 Información del Evento</h3>\n        <div class=\"info-row\">\n          <span class=\"info-label\">Timestamp:</span>\n          <span class=\"info-value\">${timestamp}</span>\n        </div>\n        <div class=\"info-row\">\n          <span class=\"info-label\">Rule ID:</span>\n          <span class=\"info-value\">${alert.rule.id}</span>\n        </div>\n        <div class=\"info-row\">\n          <span class=\"info-label\">Cliente:</span>\n          <span class=\"info-value\">${alert.data.client}</span>\n        </div>\n        <div class=\"info-row\">\n          <span class=\"info-label\">Usuario:</span>\n          <span class=\"info-value\">${alert.data.username}</span>\n        </div>\n        <div class=\"info-row\">\n          <span class=\"info-label\">Base de Datos:</span>\n          <span class=\"info-value\">${alert.data.schemaname}</span>\n        </div>\n        <div class=\"info-row\">\n          <span class=\"info-label\">Manager:</span>\n          <span class=\"info-value\">${alert.manager.name}</span>\n        </div>\n      </div>\n\n      <div class=\"query-box\">\n        <strong style=\"color: #78dce8;\">🔍 Query Bloqueada:</strong><br><br>\n        <code>${alert.data.query}</code>\n      </div>\n\n      <div class=\"mitre-box\">\n        <strong>🎯 MITRE ATT&CK:</strong><br>\n        <a href=\"${mitreUrl}\" target=\"_blank\">${mitreTechnique}</a>\n      </div>\n\n      <div class=\"section\">\n        <h3>🏷️ Categorías</h3>\n        <div class=\"tags\">\n          ${alert.rule.groups.map(g => `<span class=\"tag\">${g}</span>`).join('')}\n        </div>\n      </div>\n\n      <div style=\"text-align: center; margin: 30px 0;\">\n        <a href=\"https://localhost:443\" class=\"btn\">Ver en Wazuh Dashboard →</a>\n      </div>\n    </div>\n\n    <div class=\"footer\">\n      <p><strong>ProxySQL</strong> bloqueó esta query automáticamente</p>\n      <p style=\"margin-top: 8px;\">Monitoreado por Wazuh</p>\n      <p style=\"margin-top: 8px; font-size: 11px;\">${alert.location}</p>\n    </div>\n  </div>\n</body>\n</html>`;\n\n// Retornar con HTML incluido\nreturn {\n  json: {\n    subject: `🚨 ALERTA ${severity}: ${alert.rule.description}`,\n    htmlBody: htmlEmail\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        -16
+      ],
+      "id": "437fd992-ef4e-4a11-b5b8-335950a822f8",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "fromEmail": "sfernandez@ironbox.com.ar",
+        "toEmail": "sfernandez@ironbox.com.ar",
+        "subject": "={{ $json.subject }}",
+        "html": "={{ $json.htmlBody }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        208,
+        -16
+      ],
+      "id": "4289ae66-8533-4b33-bae1-e82446a1eda4",
+      "name": "Send email",
+      "webhookId": "590c4a2b-d685-4607-bdba-8d838abb33dc",
+      "credentials": {
+        "smtp": {
+          "id": "hD4GgqybJCyie8bi",
+          "name": "SMTP account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Send email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "9c3888de-c904-47c8-a6ce-dd08ac741bf1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9dde79c2c3db28ceb0f1000bddf02d2411458786da0b66f350fda97c4f1f3cbd"
+  },
+  "id": "29bEtwYz9kWmOzr8",
+  "tags": []
+}

@@ -1,0 +1,133 @@
+# config/proxysql/proxysql.cnf
+datadir="/var/lib/proxysql"
+
+admin_variables=
+{
+    admin_credentials="admin:admin"
+    mysql_ifaces="0.0.0.0:6032"
+    refresh_interval=2000
+}
+
+mysql_variables=
+{
+    threads=4
+    max_connections=2048
+    default_query_delay=0
+    default_query_timeout=36000000
+    have_compress=true
+    poll_timeout=2000
+    interfaces="0.0.0.0:6033"
+    default_schema="information_schema"
+    stacksize=1048576
+    server_version="8.0.0"
+    connect_timeout_server=3000
+    monitor_username="monitor"
+    monitor_password="monitor"
+    monitor_history=600000
+    monitor_connect_interval=60000
+    monitor_ping_interval=10000
+    monitor_read_only_interval=1500
+    monitor_read_only_timeout=500
+    ping_interval_server_msec=120000
+    ping_timeout_server=500
+    commands_stats=true
+    sessions_sort=true
+    connect_retries_on_failure=10
+    
+    # LOGGING
+    eventslog_filename="/var/log/proxysql/queries.log"
+    eventslog_default_log=1
+    eventslog_format=2
+    eventslog_filesize=1073741824  # 1GB antes de rotar (muy grande para que no rote)
+}
+
+# Backend MySQL servers
+mysql_servers =
+(
+    {
+        address="mysql-db"
+        port=3306
+        hostgroup=0
+        max_connections=200
+    }
+)
+
+# Users
+mysql_users =
+(
+    {
+        username = "app_user"
+        password = "app_password"
+        default_hostgroup = 0
+        max_connections = 200
+        active = 1
+    }
+)
+
+# Query Rules - AQU BLOQUEAMOS COMANDOS PELIGROSOS
+mysql_query_rules =
+(
+    # BLOQUEAR DROP
+    {
+        rule_id=1
+        active=1
+        match_pattern="(?i)^\\s*DROP\\s+(TABLE|DATABASE|SCHEMA)"
+        error_msg="ERROR: DROP statements estan bloqueados por politica de seguridad"
+        log=1
+        apply=1
+    },
+    # BLOQUEAR TRUNCATE
+    {
+        rule_id=2
+        active=1
+        match_pattern="(?i)^\\s*TRUNCATE\\s+TABLE"
+        error_msg="ERROR: TRUNCATE TABLE esta bloqueado por politica de seguridad"
+        log=1
+        apply=1
+    },
+    # BLOQUEAR DELETE SIN WHERE
+    {
+        rule_id=3
+        active=1
+        match_pattern="(?i)^\\s*DELETE\\s+FROM\\s+[a-zA-Z0-9_]+\\s*;?\\s*$"
+        error_msg="ERROR: DELETE sin WHERE no esta permitido"
+        log=1
+        apply=1
+    },
+    # BLOQUEAR UPDATE SIN WHERE
+    {
+        rule_id=4
+        active=1
+        match_pattern="(?i)^\\s*UPDATE\\s+[a-zA-Z0-9_]+\\s+SET\\s+(?!.*WHERE).*$"
+        error_msg="ERROR: UPDATE sin WHERE no esta permitido"
+        log=1
+        apply=1
+    },
+    # BLOQUEAR ALTER TABLE
+    {
+        rule_id=5
+        active=1
+        match_pattern="(?i)^\\s*ALTER\\s+TABLE"
+        error_msg="ERROR: ALTER TABLE esta bloqueado - contacte al DBA"
+        log=1
+        apply=1
+    },
+    # BLOQUEAR GRANT/REVOKE
+    {
+        rule_id=6
+        active=1
+        match_pattern="(?i)^\\s*(GRANT|REVOKE)"
+        error_msg="ERROR: Cambios de permisos no permitidos"
+        log=1
+        apply=1
+    },
+    # PERMITIR TODO LO DEMS
+    {
+        rule_id=100
+        active=1
+        match_pattern=".*"
+        destination_hostgroup=0
+        log=1
+        apply=1
+    }
+)

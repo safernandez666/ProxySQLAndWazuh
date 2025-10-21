@@ -1,17 +1,46 @@
 #!/bin/sh
-# config/wazuh_cluster/custom-n8n
+# Custom integration script for n8n
 
-# Leer el JSON de stdin
-ALERT_JSON=$(cat)
+# Log file
+LOG_FILE="/var/ossec/logs/integrations.log"
 
-# Extraer datos del JSON
-HOOK_URL=$1
+# El primer parámetro es el ARCHIVO JSON temporal (no la URL)
+ALERT_FILE=$1
 
-# Enviar a n8n usando curl
-curl -X POST "$HOOK_URL" \
+# Leer JSON del archivo
+ALERT_JSON=$(cat "$ALERT_FILE")
+
+# La URL viene del ossec.conf, NO como parámetro
+# Integratord la pasa de forma diferente
+# Necesitamos leerla de una variable de entorno o usar la configurada
+
+# Para debug, ver qué parámetros recibimos
+echo "$(date '+%Y/%m/%d %H:%M:%S') custom-n8n: Starting integration" >> "$LOG_FILE"
+echo "$(date '+%Y/%m/%d %H:%M:%S') custom-n8n: Alert file: $ALERT_FILE" >> "$LOG_FILE"
+echo "$(date '+%Y/%m/%d %H:%M:%S') custom-n8n: All params: $@" >> "$LOG_FILE"
+
+# La URL está en la configuración, extraerla
+HOOK_URL=$(grep -A 10 "custom-n8n" /var/ossec/etc/ossec.conf | grep "hook_url" | sed 's/.*<hook_url>\(.*\)<\/hook_url>.*/\1/' | tr -d ' ')
+
+echo "$(date '+%Y/%m/%d %H:%M:%S') custom-n8n: Hook URL: $HOOK_URL" >> "$LOG_FILE"
+
+# Enviar a n8n
+RESPONSE=$(curl -X POST "$HOOK_URL" \
   -H "Content-Type: application/json" \
   -d "$ALERT_JSON" \
   --max-time 10 \
-  --silent
+  --write-out "\nHTTP_CODE:%{http_code}" \
+  --silent \
+  --show-error 2>&1)
+
+HTTP_CODE=$(echo "$RESPONSE" | grep "HTTP_CODE:" | cut -d: -f2)
+
+# Log resultado
+if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "201" ]; then
+    echo "$(date '+%Y/%m/%d %H:%M:%S') custom-n8n: SUCCESS - HTTP $HTTP_CODE" >> "$LOG_FILE"
+else
+    echo "$(date '+%Y/%m/%d %H:%M:%S') custom-n8n: ERROR - HTTP $HTTP_CODE" >> "$LOG_FILE"
+    echo "$(date '+%Y/%m/%d %H:%M:%S') custom-n8n: Response: $RESPONSE" >> "$LOG_FILE"
+fi
 
 exit 0
