@@ -1,0 +1,101 @@
+<!-- config/wazuh_cluster/mysql-rules.xml -->
+<group name="mysql,database,">
+
+  <!-- Regla base -->
+  <rule id="100300" level="0">
+    <location>/var/log/mysql/mysql.log</location>
+    <description>MySQL database events</description>
+  </rule>
+
+  <!-- Query - Regla intermedia para TODAS las queries -->
+  <rule id="100303" level="2">
+    <if_sid>100300</if_sid>
+    <match>Query</match>
+    <description>MySQL: Query ejecutada</description>
+    <group>query,</group>
+  </rule>
+
+  <!-- SELECT queries -->
+  <rule id="100304" level="2">
+    <if_sid>100303</if_sid>
+    <match>SELECT</match>
+    <description>MySQL: Query SELECT</description>
+    <group>select,</group>
+  </rule>
+
+  <!-- INSERT queries -->
+  <rule id="100305" level="4">
+    <if_sid>100303</if_sid>
+    <match>INSERT</match>
+    <description>MySQL: Query INSERT</description>
+    <group>insert,data_modification,</group>
+  </rule>
+
+  <!-- UPDATE queries -->
+  <rule id="100306" level="5">
+    <if_sid>100303</if_sid>
+    <match>UPDATE</match>
+    <description>MySQL: Query UPDATE</description>
+    <group>update,data_modification,</group>
+  </rule>
+
+  <!-- DELETE queries -->
+  <rule id="100307" level="6">
+    <if_sid>100303</if_sid>
+    <match>DELETE</match>
+    <description>MySQL: Query DELETE</description>
+    <group>delete,data_modification,</group>
+  </rule>
+
+  <!-- DROP queries -->
+  <rule id="100308" level="10">
+    <if_sid>100303</if_sid>
+    <match>DROP</match>
+    <description>MySQL: Query DROP</description>
+    <group>drop,ddl,</group>
+    <mitre>
+      <id>T1485</id>
+    </mitre>
+  </rule>
+
+  <!-- TRUNCATE queries -->
+  <rule id="100309" level="9">
+    <if_sid>100303</if_sid>
+    <match>TRUNCATE</match>
+    <description>MySQL: Query TRUNCATE</description>
+    <group>truncate,ddl,</group>
+  </rule>
+
+  <!-- ALTER -->
+  <rule id="100310" level="7">
+    <if_sid>100303</if_sid>
+    <match>ALTER</match>
+    <description>MySQL: Query ALTER</description>
+    <group>alter,ddl,</group>
+  </rule>
+
+  <!-- CREATE -->
+  <rule id="100311" level="5">
+    <if_sid>100303</if_sid>
+    <match>CREATE</match>
+    <description>MySQL: Query CREATE</description>
+    <group>create,ddl,</group>
+  </rule>
+
+  <!-- Conexiones -->
+  <rule id="100301" level="3">
+    <if_sid>100300</if_sid>
+    <match>Connect</match>
+    <description>MySQL: Conexión</description>
+    <group>connection,</group>
+  </rule>
+
+  <!-- Desconexiones -->
+  <rule id="100302" level="3">
+    <if_sid>100300</if_sid>
+    <match>Quit</match>
+    <description>MySQL: Desconexión</description>
+    <group>connection,</group>
+  </rule>
+
+</group>

@@ -1,0 +1,92 @@
+<!-- config/wazuh_cluster/proxysql-rules.xml -->
+<group name="proxysql,database,firewall,">
+
+  <!-- Regla base - Query event de ProxySQL -->
+  <rule id="100500" level="0">
+    <field name="event">COM_QUERY</field>
+    <description>ProxySQL query event</description>
+  </rule>
+
+  <!-- Query BLOQUEADA (hostgroup_id = -1) -->
+  <rule id="100501" level="8">
+    <if_sid>100500</if_sid>
+    <field name="hostgroup_id">-1</field>
+    <description>ProxySQL: Query bloqueada por firewall</description>
+    <group>database_security,firewall_block,</group>
+  </rule>
+
+  <!-- DROP bloqueado -->
+  <rule id="100502" level="12">
+    <if_sid>100501</if_sid>
+    <match>DROP TABLE</match>
+    <description>ProxySQL: DROP TABLE bloqueado</description>
+    <group>database_attack,pci_dss_10.2.5,</group>
+    <mitre>
+      <id>T1485</id>
+    </mitre>
+  </rule>
+
+  <!-- TRUNCATE bloqueado -->
+  <rule id="100503" level="12">
+    <if_sid>100501</if_sid>
+    <match>TRUNCATE TABLE</match>
+    <description>ProxySQL: TRUNCATE TABLE bloqueado</description>
+    <group>database_attack,data_loss,</group>
+  </rule>
+
+  <!-- DELETE bloqueado -->
+  <rule id="100504" level="10">
+    <if_sid>100501</if_sid>
+    <match>DELETE FROM</match>
+    <description>ProxySQL: DELETE bloqueado</description>
+    <group>database_security,</group>
+  </rule>
+
+  <!-- UPDATE bloqueado -->
+  <rule id="100505" level="10">
+    <if_sid>100501</if_sid>
+    <match>UPDATE</match>
+    <description>ProxySQL: UPDATE bloqueado</description>
+    <group>database_security,</group>
+  </rule>
+
+  <!-- ALTER bloqueado -->
+  <rule id="100506" level="10">
+    <if_sid>100501</if_sid>
+    <match>ALTER TABLE</match>
+    <description>ProxySQL: ALTER TABLE bloqueado</description>
+    <group>database_security,ddl,</group>
+  </rule>
+
+  <!-- Query PERMITIDA (hostgroup_id >= 0) -->
+  <rule id="100510" level="2">
+    <if_sid>100500</if_sid>
+    <field name="hostgroup_id">0</field>
+    <description>ProxySQL: Query ejecutada exitosamente</description>
+    <group>database_access,</group>
+  </rule>
+
+  <!-- SELECT permitido -->
+  <rule id="100511" level="2">
+    <if_sid>100510</if_sid>
+    <match>SELECT</match>
+    <description>ProxySQL: SELECT ejecutado</description>
+    <group>database_access,query,</group>
+  </rule>
+
+  <!-- INSERT permitido -->
+  <rule id="100512" level="4">
+    <if_sid>100510</if_sid>
+    <match>INSERT</match>
+    <description>ProxySQL: INSERT ejecutado</description>
+    <group>database_access,data_modification,</group>
+  </rule>
+
+  <!-- Múltiples bloqueos -->
+  <rule id="100520" level="14" frequency="5" timeframe="120">
+    <if_matched_sid>100502</if_matched_sid>
+    <description>ProxySQL: Múltiples comandos DROP bloqueados</description>
+    <group>database_attack,attacks,</group>
+  </rule>
+
+</group>

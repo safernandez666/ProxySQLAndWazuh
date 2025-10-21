@@ -1,0 +1,27 @@
+<!-- config/wazuh_cluster/mysql-decoder.xml -->
+
+<!-- Decoder base para MySQL -->
+<decoder name="mysql-file">
+  <prematch>\tQuery\t|\tConnect\t|\tQuit</prematch>
+</decoder>
+
+<!-- MySQL Query -->
+<decoder name="mysql-query">
+  <parent>mysql-file</parent>
+  <regex>\t(\d+) Query\t(.+)$</regex>
+  <order>connection_id, query</order>
+</decoder>
+
+<!-- MySQL Connect -->
+<decoder name="mysql-connect">
+  <parent>mysql-file</parent>
+  <regex>\t(\d+) Connect\t([^@]+)@([^\s]+)\s+on\s+(.*)$</regex>
+  <order>connection_id, user, host, database</order>
+</decoder>
+
+<!-- MySQL Quit -->
+<decoder name="mysql-quit">
+  <parent>mysql-file</parent>
+  <regex>\t(\d+) Quit</regex>
+  <order>connection_id</order>
+</decoder>
