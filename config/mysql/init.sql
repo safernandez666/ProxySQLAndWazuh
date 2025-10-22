@@ -61,3 +61,8 @@ FLUSH PRIVILEGES;
 -- Mostrar configuracin
 SELECT 'MySQL inicializado correctamente' AS status;
 SHOW DATABASES;
+
+-- Usuario de monitoreo para ProxySQL
+CREATE USER IF NOT EXISTS 'monitor'@'%' IDENTIFIED BY 'monitor';
+GRANT USAGE, REPLICATION CLIENT ON *.* TO 'monitor'@'%';
+FLUSH PRIVILEGES;
