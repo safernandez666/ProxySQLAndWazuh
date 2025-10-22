@@ -197,6 +197,15 @@ services:
       - n8n_data:/home/node/.n8n
     networks:
       - poc-network
+  ubuntu-client:
+    image: ubuntu:22.04
+    container_name: ubuntu-client
+    networks:
+      - poc-network
+    command: sleep infinity  # Mantiene el contenedor corriendo
+    depends_on:
+      - mysql
+    tty: true 
 # ============================================
 # NETWORKS
 # ============================================
