@@ -12,8 +12,7 @@ Sistema ligero y práctico para **detectar intentos de SQL Injection (SQLi)** y 
 
 - 🧠 **ProxySQL** inspecciona y registra queries sospechosas.  
 - 🕵️ **Wazuh** detecta patrones (reglas) en los logs de ProxySQL.  
-- 🚨 Si se confirma un ataque, Wazuh ejecuta una **respuesta activa** (por ejemplo: bloquear IPs vía `iptables`).  
-- 🧩 **N8N** puede integrarse para notificaciones (correo, Slack, The Hive, etc.).  
+- 🧩 **N8N** integrado para notificaciones (correo, Slack, The Hive o bloquear IPs en Firewall.)
 - 🧪 Diseñado para entornos **de testing o infraestructura controlada**.
 
 📘 Podés encontrar el artículo completo en este [enlace al blog](https://blog.santiagoagustinfernandez.com/cuando-el-sql-se-pone-peligroso-automatizando-defensa-con-proxysql-y-wazuh)
@@ -22,11 +21,9 @@ Sistema ligero y práctico para **detectar intentos de SQL Injection (SQLi)** y 
 
 ## 🧱 Arquitectura Simplificada
 
-Aplicación → ProxySQL (filtrado + logs) → MySQL/MariaDB
-                       │
-                       └──> Wazuh (detección / reglas / active response)
-                             └──> N8N envio de Email, podria agregarse Slack y/o The Hive
-                                 └──> (opcional) iptables / firewall
+<p align="center">
+  <img src="screenshots/DAM.png" alt="Arquitectura del sistema" width="600"/>
+</p>
 
 
 ## 🔍 Qué Hace Exactamente
@@ -38,5 +35,5 @@ Aplicación → ProxySQL (filtrado + logs) → MySQL/MariaDB
 
 ---
 
-✍️ **Autor:** [Santiago Agustín Fernández](https://blog.santiagoagustinfernandez.com)  
-🔐 *Ciberseguridad & Automatización con Python*
+✍️ **Autor:** [Santiago Agustín Fernández](https://www.linkedin.com/in/safernandez666/)  
+🔐 **Blog** [https://blog.santiagoagustinfernandez.com](https://blog.santiagoagustinfernandez.com)  
