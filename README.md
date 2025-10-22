@@ -1,10 +1,6 @@
 # 🛡️ Defensa Automatizada contra SQL Injection con ProxySQL, Wazuh & N8N
 
-Sistema ligero y práctico para **detectar intentos de SQL Injection (SQLi)** y **responder automáticamente**.
-
-> ⚠️ **Nota importante:**  
-> *ProxySQL* es el motor que **filtra y decide** sobre las queries.  
-> El bloqueo por `iptables` es una **acción reactiva opcional (Active Response)** para mitigar la IP origen; **no reemplaza** el filtrado de ProxySQL.
+Sistema ligero y práctico para **detectar intentos de SQL Injection (SQLi), DROPs, TRUNCATEs o ALTERs** y **responder automáticamente**.
 
 ---
 
@@ -25,6 +21,7 @@ Sistema ligero y práctico para **detectar intentos de SQL Injection (SQLi)** y 
   <img src="screenshots/DAM.png" alt="Arquitectura del sistema" width="600"/>
 </p>
 
+---
 
 ## 🔍 Qué Hace Exactamente
 
@@ -33,7 +30,11 @@ Sistema ligero y práctico para **detectar intentos de SQL Injection (SQLi)** y 
 - 🚨 **Genera alertas** en Wazuh y ejecuta respuestas automáticas (por ejemplo, scripts que bloquean IPs).  
 - 🧱 **No altera** el motor de base de datos: ProxySQL actúa como punto de control entre la aplicación y MySQL.  
 
+> ⚠️ **Nota importante:**  
+> *ProxySQL* es el motor que **filtra y decide** sobre las queries.  
+> El bloqueo por `iptables` es una **acción reactiva opcional (Active Response)** para mitigar la IP origen; **no reemplaza** el filtrado de ProxySQL.
+
 ---
 
 ✍️ **Autor:** [Santiago Agustín Fernández](https://www.linkedin.com/in/safernandez666/)  
-🔐 **Blog** [https://blog.santiagoagustinfernandez.com](https://blog.santiagoagustinfernandez.com)  
+🔐 **Blog:** [https://blog.santiagoagustinfernandez.com](https://blog.santiagoagustinfernandez.com)  
